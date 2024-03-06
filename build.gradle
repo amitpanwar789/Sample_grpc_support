@@ -1,0 +1,44 @@
+plugins {
+    id 'java' // Apply the Java plugin
+    id 'com.google.protobuf' version '0.9.4' // Or your desired Protobuf plugin version
+    id 'application'
+}
+
+application {
+    mainClass = 'Demo' // Replace with your main class 
+}
+
+repositories {
+    mavenCentral() // Use other repositories if needed
+    maven { // The google mirror is less flaky than mavenCentral()
+        url "https://maven-central.storage-download.googleapis.com/maven2/" }
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    // Core gRPC dependencies
+    implementation 'io.grpc:grpc-protobuf:1.61.1' // Or your desired gRPC version
+    implementation 'io.grpc:grpc-stub:1.61.1' 
+    runtimeOnly 'io.grpc:grpc-netty-shaded:1.61.1'  
+
+    // Additional dependencies (if required)
+    // implementation 'other-library:name:version' 
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.25.1" // Or your desired version
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.61.1" // Align with gRPC version
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
+}
+

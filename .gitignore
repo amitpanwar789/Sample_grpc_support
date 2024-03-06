@@ -1,0 +1,20 @@
+# Ignore build output directories
+build/
+generated/
+libs/
+resources/
+tmp/
+
+# Ignore Gradle files
+.gradle/
+gradle/
+
+# Ignore compiled Java classes
+*.class
+
+# Ignore IDE files
+*.iml
+.idea/
+
+# Ignore compiled JAR files
+*.jar
