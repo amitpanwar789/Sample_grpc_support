@@ -7,7 +7,6 @@ tmp/
 
 # Ignore Gradle files
 .gradle/
-gradle/
 
 # Ignore compiled Java classes
 *.class
