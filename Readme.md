@@ -16,7 +16,7 @@ Sorry for code quality &#x1F614; in this repository. This is an initial implemen
 
 ## Usage
 
-1. Clone the repository: `git clone <repository_url>`
-2. Navigate to the cloned directory: `cd grpc-support-project`
+1. Clone the repository: `git clone https://github.com/amitpanwar789/Sample_grpc_support.git`
+2. Navigate to the cloned directory: `cd Sample_grpc_support`
 
 
