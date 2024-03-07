@@ -53,14 +53,15 @@ public class ProtocolDecoder {
 
                 case 1: // 64-bit
                     long longValue = inputStream.readRawLittleEndian64();
-                    decodedValue += isDouble(longValue) ? Double.toString(Double.longBitsToDouble(longValue))
+                    decodedValue += DecoderUtils.isDouble(longValue)
+                            ? Double.toString(Double.longBitsToDouble(longValue))
                             : Long.toString(longValue);
 
                     break;
 
                 case 5: // 32-bit
                     int intValue = inputStream.readRawLittleEndian32();
-                    decodedValue += isFloat(intValue) ? Float.toString(Float.intBitsToFloat(intValue))
+                    decodedValue += DecoderUtils.isFloat(intValue) ? Float.toString(Float.intBitsToFloat(intValue))
                             : Integer.toString(intValue);
 
                     break;
@@ -74,9 +75,24 @@ public class ProtocolDecoder {
                     // as string
                     // still need to check for packed repeated fields
                     String validMessage = checkNestedMessage(stringBytes);
-                    if (validMessage.length() == 0)
-                        decodedValue += decoded;
-                    else
+                    if (validMessage.length() == 0) {
+                        // not a nested message check for printable characters
+                        int unprintable = 0;
+                        int runes = stringBytes.length;
+                        for (byte stringByte : stringBytes) {
+                            if (!DecoderUtils.isGraphic(stringByte)) {
+                                unprintable++;
+                            }
+                        }
+
+                        // assume not a human readable string
+                        // decode it as hex values
+                        if ((double) unprintable / runes > 0.3) {
+                            decodedValue += DecoderUtils.toHexString(stringBytes);
+                        } else {
+                            decodedValue += decoded;
+                        }
+                    } else
                         decodedValue += validMessage;
 
                     break;
@@ -95,32 +111,6 @@ public class ProtocolDecoder {
     private String checkNestedMessage(byte[] stringBytes) {
         DecoderNestedMessage decoderNestedMessage = new DecoderNestedMessage();
         return decoderNestedMessage.startDecoding(stringBytes);
-    }
-
-    static boolean isFloat(int value) {
-        int bitLen = 32;
-        int expLen = 8;
-        int mantLen = bitLen - expLen - 1;
-        int exp = (value >> mantLen) & ((1 << expLen) - 1);
-        exp -= (1 << (expLen - 1)) - 1;
-        if (exp < 0) {
-            exp = -exp;
-        }
-        int bigExp = (1 << (expLen - 1)) - 1;
-        return exp < bigExp;
-    }
-
-    static boolean isDouble(long value) {
-        int bitLen = 64;
-        int expLen = 11;
-        int mantLen = bitLen - expLen - 1;
-        long exp = (value >> mantLen) & ((1 << expLen) - 1);
-        exp -= (1 << (expLen - 1)) - 1;
-        if (exp < 0) {
-            exp = -exp;
-        }
-        int bigExp = (1 << (expLen - 1)) - 1;
-        return exp < bigExp;
     }
 
     public String getDecodedOuput() {

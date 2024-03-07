@@ -50,7 +50,7 @@ public class DecoderNestedMessage {
 
                 case 1: // 64-bit
                     long longValue = inputStream.readRawLittleEndian64();
-                    decodedValue += ProtocolDecoder.isDouble(longValue)
+                    decodedValue += DecoderUtils.isDouble(longValue)
                             ? Double.toString(Double.longBitsToDouble(longValue))
                             : Long.toString(longValue);
 
@@ -58,7 +58,7 @@ public class DecoderNestedMessage {
 
                 case 5: // 32-bit
                     int intValue = inputStream.readRawLittleEndian32();
-                    decodedValue += ProtocolDecoder.isFloat(intValue) ? Float.toString(Float.intBitsToFloat(intValue))
+                    decodedValue += DecoderUtils.isFloat(intValue) ? Float.toString(Float.intBitsToFloat(intValue))
                             : Integer.toString(intValue);
 
                     break;
@@ -70,7 +70,22 @@ public class DecoderNestedMessage {
                     // child nested message
                     String validMessage = checkNestedMessage(stringBytes);
                     if (validMessage.length() == 0) {
-                        decodedValue += decoded;
+                        // not a nested message check for printable characters
+                        int unprintable = 0;
+                        int runes = stringBytes.length;
+                        for (byte stringByte : stringBytes) {
+                            if (!DecoderUtils.isGraphic(stringByte)) {
+                                unprintable++;
+                            }
+                        }
+                        // decode it as hex values
+                        // assume not a human readable string
+                        if ((double) unprintable / runes > 0.3) {
+                            decodedValue += DecoderUtils.toHexString(stringBytes);
+                        } else {
+                            decodedValue += decoded;
+                        }
+
                     } else
                         decodedValue += validMessage;
 
