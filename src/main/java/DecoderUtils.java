@@ -1,5 +1,24 @@
 public class DecoderUtils {
 
+    public static byte[] hexStringtoByteArray(String hexString) {
+        // Ensure even length
+        if (hexString.length() % 2 != 0) {
+            throw new IllegalArgumentException("Invalid hex string: odd length");
+        }
+
+        // Create byte array with correct size
+        byte[] result = new byte[hexString.length() / 2];
+
+        // Parse hex pairs and fill the byte array
+        for (int i = 0; i < result.length; i++) {
+            String hexByte = hexString.substring(i * 2, i * 2 + 2);
+            int byteValue = Integer.parseInt(hexByte, 16); // Parse as base-16 (hex)
+            result[i] = (byte) byteValue; 
+        }
+
+        return result;
+    }
+
     static boolean isGraphic(byte ch) {
         // Check if the character is printable
         // Printable characters have unicode values greater than 32 (excluding control
@@ -40,4 +59,5 @@ public class DecoderUtils {
         int bigExp = (1 << (expLen - 1)) - 1;
         return exp < bigExp;
     }
+    
 }
