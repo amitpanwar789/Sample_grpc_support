@@ -1,7 +1,7 @@
 import com.google.protobuf.CodedInputStream;
 import java.io.IOException;
 
-public class DecoderNestedMessage {
+public class NestedMessageDecoder {
     private CodedInputStream inputStream;
 
     public String startDecoding(byte[] inputData) {
@@ -13,7 +13,7 @@ public class DecoderNestedMessage {
             if (validField.length() == 0)
                 return validField;
             else
-                output += "\"" + validField + "\", \n";
+                output += "\"" + validField + "\"\n";
             try {
                 if (inputStream.isAtEnd()) {
                     check = false;
@@ -26,7 +26,7 @@ public class DecoderNestedMessage {
         return output;
     }
 
-    public String decodeField() {
+    private String decodeField() {
         int tag;
         try {
             tag = inputStream.readTag();
@@ -40,30 +40,37 @@ public class DecoderNestedMessage {
         }
 
         // extract field number
-        String decodedValue = (tag >> 3) + "::";
+        String decodedValue = (tag>>3) + ",";
+        int wireType = (tag & 0x7);
         try {
-            switch (tag & 0x7) {
+            switch (wireType) {
                 case 0: // Varint
                     long varintValue = inputStream.readRawVarint64();
-                    decodedValue += Long.toString(varintValue);
+                    decodedValue += Integer.toString(wireType) + "::" + Long.toString(varintValue);
                     break;
 
                 case 1: // 64-bit
                     long longValue = inputStream.readRawLittleEndian64();
-                    decodedValue += DecoderUtils.isDouble(longValue)
-                            ? Double.toString(Double.longBitsToDouble(longValue))
-                            : Long.toString(longValue);
-
+                    decodedValue += Integer.toString(wireType);
+                    if (DecoderUtils.isDouble(longValue)) {
+                        decodedValue += "D::" + Double.toString(Double.longBitsToDouble(longValue));
+                    } else {
+                        decodedValue += "::" + Long.toString(longValue);
+                    }
                     break;
 
                 case 5: // 32-bit
+                    decodedValue += Integer.toString(wireType);
                     int intValue = inputStream.readRawLittleEndian32();
-                    decodedValue += DecoderUtils.isFloat(intValue) ? Float.toString(Float.intBitsToFloat(intValue))
-                            : Integer.toString(intValue);
-
+                    if (DecoderUtils.isFloat(intValue)) {
+                        decodedValue += "F::" + Float.toString(Float.intBitsToFloat(intValue));
+                    } else {
+                        decodedValue += "::" + Integer.toString(intValue);
+                    }
                     break;
 
                 case 2: // Length-Prefixed string
+                    decodedValue += Integer.toString(wireType);
                     String decoded = inputStream.readStringRequireUtf8();
                     byte[] stringBytes = decoded.getBytes();
                     // assume wire type 2 as Nested Message
@@ -81,13 +88,13 @@ public class DecoderNestedMessage {
                         // decode it as hex values
                         // assume not a human readable string
                         if ((double) unprintable / runes > 0.3) {
-                            decodedValue += DecoderUtils.toHexString(stringBytes);
+                            decodedValue += "B::" +  DecoderUtils.toHexString(stringBytes);
                         } else {
-                            decodedValue += decoded;
+                            decodedValue += "::" +  decoded;
                         }
 
                     } else
-                        decodedValue += validMessage;
+                        decodedValue += "N::" + validMessage;
 
                     break;
 
@@ -102,8 +109,8 @@ public class DecoderNestedMessage {
     }
 
     private String checkNestedMessage(byte[] stringBytes) {
-        DecoderNestedMessage decoderNestedMessage = new DecoderNestedMessage();
-        return decoderNestedMessage.startDecoding(stringBytes);
+        NestedMessageDecoder nestedMessageDecoder = new NestedMessageDecoder();
+        return nestedMessageDecoder.startDecoding(stringBytes);
     }
 
 }

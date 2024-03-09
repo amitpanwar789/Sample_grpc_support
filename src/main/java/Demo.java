@@ -51,13 +51,24 @@ public class Demo {
         //String codedWithBase64 = "AAAAAEkKI3sibmFtZSI6IkpvaG4iLCJsYXN0bmFtZSI6Ik1pbGxlciJ9EB4aIDEyMzQgTWFpbiBTdC4gQW55dG93biwgVVNBIDEyMzQ1";
         //String onlyName = "AAAAADEKC2pvaG4gTWlsbGVyEB4aIDEyMzQgTWFpbiBTdC4gQW55dG93biwgVVNBIDEyMzQ1";
         //String mix = "AAAAAHwJzczMzMzcXkAVrseHQhi5YCDqrcDlJCixqAMwgYjis8oBOGNA/Y/fwEpNECcAAFHMexx6BQAAAF04////Ycips/r/////aAFyEEhlbGxvLCBQcm90b2J1ZiGAAQGKARwKCzEyMyBNYWluIFN0EgZNeUNpdHkaBTEyMzQ1";
-        String mixWithRepeated = "AAAAAKIJzczMzMzcXkAVrseHQhi5YCDqrcDlJCixqAMwgYjis8oBOGNA/Y/fwEpN6AMAAFHMexx6BQAAAF04////Ycips/r/////aAFyEEhlbGxvLCBQcm90b2J1ZiGAAQGKARwKCzEyMyBNYWluIFN0EgZNeUNpdHkaBTEyMzQ1kgEMCgFhEgFiGgFjIgFkmgEBYZoBAWKaAQFjmgEBZKIBBAECAwQ=";
+        String mixWithRepeated = "AAAAAKEJzczMzMzcXkAVrseHQhi5YCDqrcDlJCixqAMwgYjis8oBOGNA/Y/fwEpN6AMAAFHMexx6BQAAAF04////Ycips/r/////aAFyEEhlbGxvLCBQcm90b2J1ZiF4AYIBHAoLMTIzIE1haW4gU3QSBk15Q2l0eRoFMTIzNDWKAQwKAWESAWIaAWMiAWSSAQFhkgEBYpIBAWOSAQFkmgEEAQIDBA==";
         byte[] decodedBytes = Base64.getDecoder().decode(mixWithRepeated);
         String hexString = byteArrayToHex(decodedBytes);
         String lengthAndPayload[] = splitGrpcLengthPrefix(hexString);
         ProtocolDecoder decoder = new ProtocolDecoder();
         decoder.startDecoding(hexStringToByteArray(lengthAndPayload[1]));
         System.out.println(decoder.getDecodedOuput());
+        ProtocolEncoder protocolEncoder = new ProtocolEncoder();
+        protocolEncoder.start(decoder.getDecodedValues());
+        byte[] a = protocolEncoder.getOutputEncodedMessage();
+        ;
+        for(int i = 0 ; i < a.length; i++){
+            if(a[i] != decodedBytes[i]){
+                System.out.println(i);
+            }
+        }
+        System.out.println(Arrays.equals(a, decodedBytes));
+        System.out.println("hel");
     }
 }
 
